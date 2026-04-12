@@ -69,6 +69,51 @@ function shake(el) {
   el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
 }
 
+// ─── Units ───────────────────────────────────────────────────────────────────
+
+const UNITS = ['item', 'tsp', 'tbsp', 'bowl', 'piece', 'portion', 'cup'];
+
+// Combine a numeric string and a unit string into one quantity string
+function buildQuantity(num, unit) {
+  const n = String(num).trim();
+  const u = String(unit).trim();
+  if (n && u) return `${n} ${u}`;
+  return n || u;
+}
+
+// Split a stored quantity string back into {num, unit} for the edit form
+function parseQuantity(raw) {
+  if (!raw) return { num: '', unit: '' };
+  const parts = raw.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    const maybeNum  = parts[0];
+    const maybeUnit = parts.slice(1).join(' ');
+    if (maybeNum !== '' && !isNaN(maybeNum) && UNITS.includes(maybeUnit)) {
+      return { num: maybeNum, unit: maybeUnit };
+    }
+  }
+  return { num: raw, unit: '' };
+}
+
+// Build a <select> element for unit choice (used in the inline edit form)
+function createUnitSelect(selectedUnit = '') {
+  const sel = document.createElement('select');
+  sel.className = 'input input-unit';
+  sel.setAttribute('aria-label', 'Unit');
+  const blank = document.createElement('option');
+  blank.value = '';
+  blank.textContent = '— unit —';
+  sel.appendChild(blank);
+  UNITS.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u;
+    opt.textContent = u;
+    if (u === selectedUnit) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
 // ─── Qualifier helpers ────────────────────────────────────────────────────────
 
 const QUALIFIERS = [
@@ -286,7 +331,7 @@ document.addEventListener('mousedown', e => {
 
 // ─── Shared entry submission ──────────────────────────────────────────────────
 
-async function submitEntry(date, { qty, qualSel, foodName, ac }) {
+async function submitEntry(date, { qty, unit, qualSel, foodName, ac }) {
   if (!currentUser) return;
 
   const name = foodName.value.trim();
@@ -295,13 +340,13 @@ async function submitEntry(date, { qty, qualSel, foodName, ac }) {
   const entry = {
     date,
     timestamp: Date.now(),
-    quantity:  qty.value.trim(),
+    quantity:  buildQuantity(qty.value, unit.value),
     qualifier: qualSel.getValues(),
     name,
   };
 
   // Reset before async write — feels instant
-  qty.value = foodName.value = '';
+  qty.value = unit.value = foodName.value = '';
   qualSel.reset();
   ac.hide();
   foodName.focus();
@@ -316,6 +361,7 @@ async function submitEntry(date, { qty, qualSel, foodName, ac }) {
 // ─── DOM references ───────────────────────────────────────────────────────────
 
 const $qty              = document.getElementById('qty');
+const $unit             = document.getElementById('unit');
 const $qualifierWrap    = document.getElementById('qualifier-wrap');
 const $foodName         = document.getElementById('food-name');
 const $addBtn           = document.getElementById('add-btn');
@@ -330,6 +376,7 @@ const $calEntries       = document.getElementById('cal-entries');
 const $calAddSection    = document.getElementById('cal-add-section');
 const $calForDate       = document.getElementById('cal-for-date');
 const $calQty           = document.getElementById('cal-qty');
+const $calUnit          = document.getElementById('cal-unit');
 const $calQualifierWrap = document.getElementById('cal-qualifier-wrap');
 const $calFoodName      = document.getElementById('cal-food-name');
 const $calAddBtn        = document.getElementById('cal-add-btn');
@@ -351,7 +398,7 @@ const logAC = createAutocomplete($foodName, $suggestions, entry => {
   logQualSel.setValues(toQualArray(entry.qualifier));
 });
 
-const logEls = { qty: $qty, qualSel: logQualSel, foodName: $foodName, ac: logAC };
+const logEls = { qty: $qty, unit: $unit, qualSel: logQualSel, foodName: $foodName, ac: logAC };
 
 $addBtn.addEventListener('click', () => submitEntry(localDateStr(), logEls));
 $foodName.addEventListener('keydown', e => {
@@ -369,7 +416,7 @@ const calAC = createAutocomplete($calFoodName, $calSuggestions, entry => {
   calQualSel.setValues(toQualArray(entry.qualifier));
 });
 
-const calEls = { qty: $calQty, qualSel: calQualSel, foodName: $calFoodName, ac: calAC };
+const calEls = { qty: $calQty, unit: $calUnit, qualSel: calQualSel, foodName: $calFoodName, ac: calAC };
 
 $calAddBtn.addEventListener('click', () => submitEntry(selectedDate, calEls));
 $calFoodName.addEventListener('keydown', e => {
@@ -482,12 +529,19 @@ function showEditForm(div, entry) {
   div.innerHTML = '';
   div.classList.add('entry-editing');
 
+  const { num: qNum, unit: qUnit } = parseQuantity(entry.quantity);
+
   const qtyInput = document.createElement('input');
-  qtyInput.type = 'text';
+  qtyInput.type = 'number';
   qtyInput.className = 'input input-qty';
-  qtyInput.value = entry.quantity || '';
+  qtyInput.value = qNum;
   qtyInput.placeholder = 'Qty';
+  qtyInput.min = '0';
+  qtyInput.step = 'any';
   div.appendChild(qtyInput);
+
+  const unitSel = createUnitSelect(qUnit);
+  div.appendChild(unitSel);
 
   const qualWrap = document.createElement('div');
   qualWrap.className = 'qualifier-wrap';
@@ -519,7 +573,7 @@ function showEditForm(div, entry) {
     if (!name) { shake(nameInput); return; }
     saveBtn.disabled = cancelBtn.disabled = true;
     await saveEntryEdit(entry.id, {
-      quantity:  qtyInput.value.trim(),
+      quantity:  buildQuantity(qtyInput.value, unitSel.value),
       qualifier: editQualSel.getValues(),
       name,
     });

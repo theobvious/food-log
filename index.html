@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Food Log</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥕</text></svg>">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="app">
@@ -65,7 +65,17 @@
 
       <section class="add-form" aria-label="Add food entry">
         <div class="form-row">
-          <input type="text" id="qty" placeholder="Quantity" class="input input-qty" aria-label="Quantity">
+          <input type="number" id="qty" placeholder="Qty" class="input input-qty" aria-label="Quantity" min="0" step="any">
+          <select id="unit" class="input input-unit" aria-label="Unit">
+            <option value="">— unit —</option>
+            <option value="item">item</option>
+            <option value="tsp">tsp</option>
+            <option value="tbsp">tbsp</option>
+            <option value="bowl">bowl</option>
+            <option value="piece">piece</option>
+            <option value="portion">portion</option>
+            <option value="cup">cup</option>
+          </select>
           <div id="qualifier-wrap" class="qualifier-wrap"></div>
           <div class="autocomplete-wrap">
             <input type="text" id="food-name" placeholder="Food name" class="input input-name" autocomplete="off" aria-label="Food name" aria-autocomplete="list" aria-controls="suggestions">
@@ -120,7 +130,17 @@
           Adding for <strong id="cal-for-date"></strong>
         </div>
         <div class="form-row">
-          <input type="text" id="cal-qty" placeholder="Quantity" class="input input-qty" aria-label="Quantity">
+          <input type="number" id="cal-qty" placeholder="Qty" class="input input-qty" aria-label="Quantity" min="0" step="any">
+          <select id="cal-unit" class="input input-unit" aria-label="Unit">
+            <option value="">— unit —</option>
+            <option value="item">item</option>
+            <option value="tsp">tsp</option>
+            <option value="tbsp">tbsp</option>
+            <option value="bowl">bowl</option>
+            <option value="piece">piece</option>
+            <option value="portion">portion</option>
+            <option value="cup">cup</option>
+          </select>
           <div id="cal-qualifier-wrap" class="qualifier-wrap"></div>
           <div class="autocomplete-wrap">
             <input type="text" id="cal-food-name" placeholder="Food name" class="input input-name" autocomplete="off" aria-label="Food name" aria-autocomplete="list" aria-controls="cal-suggestions">
@@ -140,6 +160,6 @@
     </main>
 
   </div>
-  <script type="module" src="app.js?v=3"></script>
+  <script type="module" src="app.js?v=4"></script>
 </body>
 </html>

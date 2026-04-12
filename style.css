@@ -125,9 +125,15 @@ body {
 
 .input:focus { border-color: var(--border-mid); }
 
-.input-qty      { width: 90px; }
+.input-qty      { width: 72px; }
 .input-qualifier { width: 100%; appearance: none; cursor: pointer; }
 .input-name     { width: 100%; }
+.input-unit     { width: 96px; cursor: pointer; }
+
+/* hide number spinner arrows */
+.input-qty::-webkit-outer-spin-button,
+.input-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
+.input-qty[type=number] { -moz-appearance: textfield; }
 
 /* qualifier multi-select */
 .qualifier-wrap {
@@ -733,7 +739,8 @@ body {
   .app { padding: 0 14px 48px; }
 
   .form-row { gap: 6px; }
-  .input-qty  { width: 76px; }
+  .input-qty  { width: 60px; }
+  .input-unit { width: 84px; }
   .qualifier-wrap { width: 130px; }
 
   .entry-qty { min-width: 40px; }
